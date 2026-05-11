@@ -3,6 +3,12 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   // ======================
+  // BASE URL (GITHUB PAGES)
+  // ======================
+
+  base: '/aplikasi-berbagi-cerita/',
+
+  // ======================
   // ROOT PROJECT
   // ======================
 
@@ -12,7 +18,7 @@ export default defineConfig({
   // PUBLIC FOLDER
   // ======================
 
-  publicDir: 'public',
+  publicDir: '../public',
 
   // ======================
   // BUILD OUTPUT
@@ -51,25 +57,31 @@ export default defineConfig({
 
         display: 'standalone',
 
-        start_url: '/',
+        // ======================
+        // PWA START URL
+        // ======================
 
-        scope: '/',
+        start_url:
+          '/aplikasi-berbagi-cerita/',
+
+        scope:
+          '/aplikasi-berbagi-cerita/',
 
         icons: [
           {
-            src: '/icons/icon-192.png',
+            src: 'icons/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
           },
 
           {
-            src: '/icons/icon-512.png',
+            src: 'icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
           },
 
           {
-            src: '/icons/icon-512.png',
+            src: 'icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
@@ -78,7 +90,7 @@ export default defineConfig({
 
         screenshots: [
           {
-            src: '/screenshots/desktop.png',
+            src: 'screenshots/desktop.png',
             sizes: '1280x720',
             type: 'image/png',
             form_factor: 'wide',
@@ -86,7 +98,7 @@ export default defineConfig({
           },
 
           {
-            src: '/screenshots/mobile.png',
+            src: 'screenshots/mobile.png',
             sizes: '540x720',
             type: 'image/png',
             label: 'Halaman utama mobile',
