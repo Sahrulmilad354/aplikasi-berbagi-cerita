@@ -3,10 +3,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   // ======================
-  // BASE URL (GITHUB PAGES)
+  // GITHUB PAGES BASE PATH
   // ======================
 
-  base: '/https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/',
+  base: '/aplikasi-berbagi-cerita/',
 
   // ======================
   // ROOT PROJECT
@@ -15,13 +15,13 @@ export default defineConfig({
   root: 'src',
 
   // ======================
-  // PUBLIC FOLDER
+  // PUBLIC DIRECTORY
   // ======================
 
   publicDir: '../public',
 
   // ======================
-  // BUILD OUTPUT
+  // BUILD CONFIGURATION
   // ======================
 
   build: {
@@ -48,8 +48,7 @@ export default defineConfig({
 
         short_name: 'StoryApp',
 
-        description:
-          'Aplikasi berbagi cerita',
+        description: 'Aplikasi berbagi cerita',
 
         theme_color: '#0f172a',
 
@@ -58,14 +57,12 @@ export default defineConfig({
         display: 'standalone',
 
         // ======================
-        // PWA START URL
+        // PWA URL CONFIG
         // ======================
 
-        start_url:
-          '/aplikasi-berbagi-cerita/',
+        start_url: '/aplikasi-berbagi-cerita/',
 
-        scope:
-          '/aplikasi-berbagi-cerita/',
+        scope: '/aplikasi-berbagi-cerita/',
 
         icons: [
           {
@@ -119,8 +116,7 @@ export default defineConfig({
             handler: 'NetworkFirst',
 
             options: {
-              cacheName:
-                'stories-api-cache',
+              cacheName: 'stories-api-cache',
 
               expiration: {
                 maxEntries: 50,
