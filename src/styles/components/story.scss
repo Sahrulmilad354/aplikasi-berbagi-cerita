@@ -1,0 +1,53 @@
+.story-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 375px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.story-card {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+
+  &__content {
+    padding: 15px;
+  }
+
+  /* TYPOGRAPHY */
+  h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+  }
+
+  p {
+    font-size: 14px;
+    color: #555;
+  }
+
+  small {
+    color: #888;
+  }
+}

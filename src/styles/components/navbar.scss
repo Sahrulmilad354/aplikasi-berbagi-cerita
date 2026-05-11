@@ -1,0 +1,73 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #094585, #3b82f6);
+  color: white;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  /* BRAND */
+  &__brand {
+    display: inline-block;
+    font-weight: bold;
+    font-size: 18px;
+
+    transition: transform 0.25s ease;
+
+    &:hover {
+      transform: scale(1.08);
+    }
+  }
+
+  /* MENU */
+  &__menu {
+    display: flex;
+    gap: 24px;
+
+    a {
+      display: inline-block;
+      position: relative;
+
+      text-decoration: none;
+      color: white;
+      font-weight: 500;
+
+      transition: transform 0.25s ease, color 0.25s ease;
+
+      &:hover {
+        transform: scale(1.1);
+      }
+
+      /* Underline Animation */
+      &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: -5px;
+
+        width: 0%;
+        height: 2px;
+        background: white;
+
+        transition: width 0.3s ease;
+      }
+
+      &:hover::after {
+        width: 100%;
+      }
+    }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

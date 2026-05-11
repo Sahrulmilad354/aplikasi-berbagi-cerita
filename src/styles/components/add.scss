@@ -1,0 +1,103 @@
+.add-story {
+  max-width: 1000px;
+  margin: 30px auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+
+  &__title {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* FORM GROUP */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+
+      transition: border 0.3s ease;
+
+      &:focus {
+        border-color: #3b82f6;
+        outline: none;
+      }
+    }
+  }
+
+  /* BUTTON */
+  .btn-primary {
+    background: linear-gradient(135deg, #094585, #3b82f6);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+
+    cursor: pointer;
+    font-weight: bold;
+
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    }
+  }
+
+  .btn-secondary {
+    background: #eee;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  /* MAP */
+  .map {
+    height: 300px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  /* CAMERA */
+  #camera {
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 10px;
+    display: none;
+  }
+
+  #snapshot {
+    display: none;
+  }
+
+  /* MESSAGE */
+  .form-message {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: 500;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    margin: 20px;
+    padding: 20px;
+  }
+}

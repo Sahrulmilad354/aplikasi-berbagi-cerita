@@ -1,0 +1,165 @@
+/* =========================
+   COMPONENTS
+========================= */
+@use './components/navbar';
+@use './components/footer';
+@use './components/story';
+@use './components/add';
+@use './components/login';
+
+/* =========================
+   BASE
+========================= */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f5f7fa;
+}
+
+/* =========================
+   LAYOUT
+========================= */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Skip Link (aksesibilitas) */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  z-index: 1000;
+
+  &:focus {
+    top: 10px;
+  }
+}
+
+/* =========================
+   ACCESSIBILITY
+========================= */
+:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+/* =========================
+   LAYOUT STRUCTURE
+========================= */
+#main-content {
+  flex: 1;
+}
+
+/* View Transition Animation */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.4s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-old(root) {
+  animation-name: fade-out;
+}
+
+::view-transition-new(root) {
+  animation-name: fade-in;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* =========================
+   PUSH NOTIFICATION
+========================= */
+.notification-button {
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+
+  font-weight: 600;
+  font-size: 14px;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.notification-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.notification-button.active {
+  background: #ffffff;
+  color: #0f766e;
+}
+
+.notification-button.active .notification-icon {
+  animation: bell-ring 1s ease;
+}
+
+.notification-icon {
+  font-size: 18px;
+}
+
+.notification-text {
+  min-width: 28px;
+  text-align: center;
+}
+
+@keyframes bell-ring {
+  0% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(15deg);
+  }
+  40% {
+    transform: rotate(-15deg);
+  }
+  60% {
+    transform: rotate(10deg);
+  }
+  80% {
+    transform: rotate(-10deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .notification-button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .notification-text {
+    display: none;
+  }
+}

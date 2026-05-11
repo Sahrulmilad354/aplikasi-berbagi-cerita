@@ -1,0 +1,13 @@
+.footer {
+  background: linear-gradient(135deg, #094585, #3b82f6);
+  color: white;
+  text-align: center;
+  padding: 10px;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.15);
+}
+.footer p {
+  transition: transform 0.2s ease;
+}
+.footer p:hover {
+  transform: scale(1.05);
+}/*# sourceMappingURL=footer.css.map */
