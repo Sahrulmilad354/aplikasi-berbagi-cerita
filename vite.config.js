@@ -6,7 +6,7 @@ export default defineConfig({
   // BASE URL (GITHUB PAGES)
   // ======================
 
-  base: '/aplikasi-berbagi-cerita/',
+  base: '/https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/',
 
   // ======================
   // ROOT PROJECT
