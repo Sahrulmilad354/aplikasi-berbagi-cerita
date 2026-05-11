@@ -7,9 +7,7 @@ const Router = {
       this._loadPage();
     });
 
-    window.addEventListener('load', () => {
-      this._loadPage();
-    });
+    this._loadPage();
   },
 
   _getActiveRoute() {
