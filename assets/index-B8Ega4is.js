@@ -19,6 +19,10 @@
             flex-wrap:wrap;
           "
         >
+          <label
+            for="search-story"
+            class="sr-only"
+          >
           <input
             id="search-story"
             type="text"
