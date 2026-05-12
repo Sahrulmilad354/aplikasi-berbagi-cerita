@@ -13,107 +13,88 @@ import {
 
 import { syncPendingStories } from './data/sync';
 
-// ======================
-// PWA INSTALL PROMPT
-// ======================
+/* =========================
+   PWA INSTALL PROMPT
+========================= */
 
 let deferredPrompt = null;
 
-function initInstallPrompt() {
-  window.addEventListener(
-    'beforeinstallprompt',
-    (event) => {
-      event.preventDefault();
+// buat tombol install
+const installButton = document.createElement('button');
 
-      deferredPrompt = event;
+installButton.textContent = '📲 Install App';
 
-      showInstallButton();
-    }
-  );
-}
+installButton.style.position = 'fixed';
+installButton.style.bottom = '20px';
+installButton.style.right = '20px';
+installButton.style.zIndex = '9999';
+installButton.style.padding = '12px 20px';
+installButton.style.border = 'none';
+installButton.style.borderRadius = '10px';
+installButton.style.background = '#2563eb';
+installButton.style.color = 'white';
+installButton.style.fontWeight = 'bold';
+installButton.style.cursor = 'pointer';
+installButton.style.display = 'none';
 
-function showInstallButton() {
-  let installButton =
-    document.getElementById(
-      'install-app-button'
+document.body.appendChild(
+  installButton
+);
+
+// tangkap event install
+window.addEventListener(
+  'beforeinstallprompt',
+  (event) => {
+    console.log(
+      'PWA install available'
     );
 
-  // Hindari duplicate button
+    event.preventDefault();
 
-  if (installButton) return;
+    deferredPrompt = event;
 
-  installButton =
-    document.createElement(
-      'button'
+    installButton.style.display =
+      'block';
+  }
+);
+
+// klik tombol install
+installButton.addEventListener(
+  'click',
+  async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+
+    const {
+      outcome,
+    } =
+      await deferredPrompt.userChoice;
+
+    console.log(
+      'Install result:',
+      outcome
     );
 
-  installButton.id =
-    'install-app-button';
+    deferredPrompt = null;
 
-  installButton.innerHTML =
-    '📲 Install App';
+    installButton.style.display =
+      'none';
+  }
+);
 
-  // STYLE
+// setelah berhasil install
+window.addEventListener(
+  'appinstalled',
+  () => {
+    console.log(
+      'PWA installed'
+    );
 
-  installButton.style.position =
-    'fixed';
-
-  installButton.style.bottom =
-    '20px';
-
-  installButton.style.right =
-    '20px';
-
-  installButton.style.zIndex =
-    '9999';
-
-  installButton.style.padding =
-    '12px 16px';
-
-  installButton.style.border =
-    'none';
-
-  installButton.style.borderRadius =
-    '12px';
-
-  installButton.style.background =
-    '#2563eb';
-
-  installButton.style.color =
-    '#ffffff';
-
-  installButton.style.cursor =
-    'pointer';
-
-  installButton.style.boxShadow =
-    '0 4px 10px rgba(0,0,0,0.2)';
-
-  document.body.appendChild(
-    installButton
-  );
-
-  // CLICK INSTALL
-
-  installButton.addEventListener(
-    'click',
-    async () => {
-      if (!deferredPrompt) return;
-
-      deferredPrompt.prompt();
-
-      const { outcome } =
-        await deferredPrompt.userChoice;
-
-      console.log(
-        `Install prompt result: ${outcome}`
-      );
-
-      deferredPrompt = null;
-
-      installButton.remove();
-    }
-  );
-}
+    installButton.style.display =
+      'none';
+  }
+);
 
 // ======================
 // INIT APP
@@ -129,10 +110,6 @@ document.addEventListener(
     // NAVBAR
 
     updateNavbar();
-
-    // INSTALL PROMPT
-
-    initInstallPrompt();
 
     // PWA
 
