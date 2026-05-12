@@ -164,12 +164,21 @@ self.addEventListener(
       event.notification.data
         ?.storyId;
 
+    // ======================
+    // GITHUB PAGES BASE URL
+    // ======================
+
+    const BASE_PATH =
+      '/aplikasi-berbagi-cerita';
+
+    // ======================
     // TARGET URL
+    // ======================
 
     const targetUrl =
       storyId
-        ? `${self.location.origin}/#/stories/${storyId}`
-        : `${self.location.origin}/#/`;
+        ? `${self.location.origin}${BASE_PATH}/#/stories/${storyId}`
+        : `${self.location.origin}${BASE_PATH}/#/home`;
 
     event.waitUntil(
       clients
@@ -179,12 +188,14 @@ self.addEventListener(
         })
         .then(
           (clientList) => {
+            // ======================
             // APP SUDAH TERBUKA
+            // ======================
 
             for (const client of clientList) {
               if (
                 client.url.includes(
-                  self.location.origin
+                  BASE_PATH
                 )
               ) {
                 client.navigate(
@@ -195,7 +206,9 @@ self.addEventListener(
               }
             }
 
+            // ======================
             // APP BELUM TERBUKA
+            // ======================
 
             return clients.openWindow(
               targetUrl
