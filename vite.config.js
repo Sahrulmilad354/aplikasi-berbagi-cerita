@@ -6,7 +6,7 @@ export default defineConfig({
   // BASE URL (GITHUB PAGES)
   // ======================
 
-  base: '/https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/',
+  base: '/aplikasi-berbagi-cerita/',
 
   // ======================
   // ROOT PROJECT
@@ -62,10 +62,10 @@ export default defineConfig({
         // ======================
 
         start_url:
-          '/https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/',
+          '/aplikasi-berbagi-cerita/',
 
         scope:
-          '/https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/',
+          '/aplikasi-berbagi-cerita/',
 
         icons: [
           {
