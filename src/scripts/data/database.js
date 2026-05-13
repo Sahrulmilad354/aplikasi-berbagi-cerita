@@ -1,35 +1,65 @@
 import { openDB } from 'idb';
 
 const DATABASE_NAME = 'story-app-db';
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 
-const STORY_STORE = 'stories';
-const PENDING_STORE = 'pending-stories';
+// ======================
+// OBJECT STORE
+// ======================
+
+// Story yang disimpan user
+const SAVED_STORY_STORE =
+  'saved-stories';
+
+// Story pending offline sync
+const PENDING_STORE =
+  'pending-stories';
 
 const dbPromise = openDB(
   DATABASE_NAME,
   DATABASE_VERSION,
   {
-    upgrade(database) {
+    upgrade(
+      database,
+      oldVersion
+    ) {
       // ======================
-      // STORY STORE
+      // MIGRATION
+      // ======================
+
+      // Hapus store lama "stories"
+      // karena sebelumnya dipakai
+      // sebagai cache fetch API
+      if (
+        oldVersion < 2 &&
+        database.objectStoreNames.contains(
+          'stories'
+        )
+      ) {
+        database.deleteObjectStore(
+          'stories'
+        );
+      }
+
+      // ======================
+      // SAVED STORIES
       // ======================
 
       if (
         !database.objectStoreNames.contains(
-          STORY_STORE
+          SAVED_STORY_STORE
         )
       ) {
-        const storyStore =
+        const savedStoryStore =
           database.createObjectStore(
-            STORY_STORE,
+            SAVED_STORY_STORE,
             {
               keyPath: 'id',
             }
           );
 
-        // Optional index
-        storyStore.createIndex(
+        // optional index
+        savedStoryStore.createIndex(
           'name',
           'name',
           {
@@ -39,7 +69,7 @@ const dbPromise = openDB(
       }
 
       // ======================
-      // PENDING STORE
+      // PENDING STORIES
       // ======================
 
       if (
@@ -61,43 +91,25 @@ const dbPromise = openDB(
 
 export const Database = {
   // ======================
-  // STORY CRUD
+  // SAVED STORY CRUD
   // ======================
-
-  async saveStories(stories) {
-    try {
-      const db = await dbPromise;
-
-      const tx = db.transaction(
-        STORY_STORE,
-        'readwrite'
-      );
-
-      stories.forEach((story) => {
-        tx.store.put(story);
-      });
-
-      await tx.done;
-
-      return true;
-    } catch (error) {
-      console.error(
-        'Gagal menyimpan stories:',
-        error
-      );
-
-      return false;
-    }
-  },
 
   async saveStory(story) {
     try {
+      if (!story?.id) {
+        return {
+          success: false,
+          message:
+            'ID story tidak valid',
+        };
+      }
+
       const db = await dbPromise;
 
-      // Cegah duplikasi
+      // Cek duplikasi
       const existingStory =
         await db.get(
-          STORY_STORE,
+          SAVED_STORY_STORE,
           story.id
         );
 
@@ -110,7 +122,7 @@ export const Database = {
       }
 
       await db.put(
-        STORY_STORE,
+        SAVED_STORY_STORE,
         story
       );
 
@@ -137,7 +149,9 @@ export const Database = {
     try {
       return (
         await dbPromise
-      ).getAll(STORY_STORE);
+      ).getAll(
+        SAVED_STORY_STORE
+      );
     } catch (error) {
       console.error(
         'Gagal mengambil stories:',
@@ -152,7 +166,10 @@ export const Database = {
     try {
       return (
         await dbPromise
-      ).get(STORY_STORE, id);
+      ).get(
+        SAVED_STORY_STORE,
+        id
+      );
     } catch (error) {
       console.error(
         'Gagal mengambil story:',
@@ -163,11 +180,35 @@ export const Database = {
     }
   },
 
+  async isStorySaved(id) {
+    try {
+      const story =
+        await (
+          await dbPromise
+        ).get(
+          SAVED_STORY_STORE,
+          id
+        );
+
+      return !!story;
+    } catch (error) {
+      console.error(
+        'Gagal mengecek story:',
+        error
+      );
+
+      return false;
+    }
+  },
+
   async deleteStory(id) {
     try {
       await (
         await dbPromise
-      ).delete(STORY_STORE, id);
+      ).delete(
+        SAVED_STORY_STORE,
+        id
+      );
 
       return {
         success: true,
@@ -192,7 +233,9 @@ export const Database = {
     try {
       await (
         await dbPromise
-      ).clear(STORY_STORE);
+      ).clear(
+        SAVED_STORY_STORE
+      );
 
       return true;
     } catch (error) {
@@ -209,11 +252,16 @@ export const Database = {
   // PENDING STORY CRUD
   // ======================
 
-  async savePendingStory(story) {
+  async savePendingStory(
+    story
+  ) {
     try {
       return (
         await dbPromise
-      ).add(PENDING_STORE, story);
+      ).add(
+        PENDING_STORE,
+        story
+      );
     } catch (error) {
       console.error(
         'Gagal menyimpan pending story:',
@@ -228,7 +276,9 @@ export const Database = {
     try {
       return (
         await dbPromise
-      ).getAll(PENDING_STORE);
+      ).getAll(
+        PENDING_STORE
+      );
     } catch (error) {
       console.error(
         'Gagal mengambil pending stories:',
@@ -239,11 +289,16 @@ export const Database = {
     }
   },
 
-  async deletePendingStory(id) {
+  async deletePendingStory(
+    id
+  ) {
     try {
       await (
         await dbPromise
-      ).delete(PENDING_STORE, id);
+      ).delete(
+        PENDING_STORE,
+        id
+      );
 
       return true;
     } catch (error) {
@@ -260,7 +315,9 @@ export const Database = {
     try {
       await (
         await dbPromise
-      ).clear(PENDING_STORE);
+      ).clear(
+        PENDING_STORE
+      );
 
       return true;
     } catch (error) {

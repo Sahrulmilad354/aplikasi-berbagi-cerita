@@ -207,14 +207,6 @@ const HomePage = {
       stories =
         result.listStory || [];
 
-      // ======================
-      // SAVE TO INDEXEDDB
-      // ======================
-
-      await Database.saveStories(
-        stories
-      );
-
       renderStories({
         stories,
         map,
@@ -227,29 +219,12 @@ const HomePage = {
         error
       );
 
-      // ======================
-      // LOAD FROM INDEXEDDB
-      // ======================
-
-      stories =
-        await Database.getStories();
-
-      if (stories.length) {
-        renderStories({
-          stories,
-          map,
-          container:
-            listContainer,
-          isOffline: true,
-        });
-      } else {
-        listContainer.innerHTML = `
-          <p>
-            Gagal memuat data dan
-            tidak ada cache offline.
-          </p>
-        `;
-      }
+      listContainer.innerHTML = `
+        <p>
+          Gagal memuat data cerita.
+          Periksa koneksi internet Anda.
+        </p>
+      `;
     }
 
     // ======================
@@ -330,11 +305,10 @@ const HomePage = {
 // RENDER STORIES
 // ======================
 
-function renderStories({
+async function renderStories({
   stories,
   map,
   container,
-  isOffline = false,
 }) {
   // ======================
   // RESET CONTAINER
@@ -369,45 +343,19 @@ function renderStories({
   }
 
   // ======================
-  // OFFLINE INFO
-  // ======================
-
-  if (isOffline) {
-    const offlineInfo =
-      document.createElement(
-        'div'
-      );
-
-    offlineInfo.innerHTML = `
-      Mode offline:
-      menampilkan data dari IndexedDB.
-    `;
-
-    offlineInfo.style.background =
-      '#fef3c7';
-
-    offlineInfo.style.color =
-      '#92400e';
-
-    offlineInfo.style.padding =
-      '10px';
-
-    offlineInfo.style.borderRadius =
-      '8px';
-
-    offlineInfo.style.marginBottom =
-      '16px';
-
-    container.appendChild(
-      offlineInfo
-    );
-  }
-
-  // ======================
   // RENDER STORY
   // ======================
 
-  stories.forEach((story) => {
+  for (const story of stories) {
+    // ======================
+    // CHECK SAVED STATUS
+    // ======================
+
+    const isSaved =
+      await Database.isStorySaved(
+        story.id
+      );
+
     // ======================
     // MARKER
     // ======================
@@ -519,7 +467,11 @@ function renderStories({
               cursor:pointer;
             "
           >
-            Simpan
+            ${
+              isSaved
+                ? 'Tersimpan'
+                : 'Simpan'
+            }
           </button>
 
           <!-- ======================
@@ -584,6 +536,14 @@ function renderStories({
         '.save-story'
       );
 
+    if (isSaved) {
+      saveButton.disabled =
+        true;
+
+      saveButton.style.opacity =
+        '0.7';
+    }
+
     saveButton.addEventListener(
       'click',
       async (event) => {
@@ -595,6 +555,17 @@ function renderStories({
           );
 
         alert(result.message);
+
+        if (result.success) {
+          saveButton.textContent =
+            'Tersimpan';
+
+          saveButton.disabled =
+            true;
+
+          saveButton.style.opacity =
+            '0.7';
+        }
       }
     );
 
@@ -614,7 +585,7 @@ function renderStories({
 
         const confirmDelete =
           confirm(
-            'Hapus cerita ini?'
+            'Hapus cerita tersimpan ini?'
           );
 
         if (!confirmDelete) {
@@ -626,24 +597,23 @@ function renderStories({
             story.id
           );
 
+        alert(result.message);
+
         if (result.success) {
-          item.remove();
+          saveButton.textContent =
+            'Simpan';
 
-          if (marker) {
-            map.removeLayer(
-              marker
-            );
-          }
+          saveButton.disabled =
+            false;
 
-          alert(result.message);
-        } else {
-          alert(result.message);
+          saveButton.style.opacity =
+            '1';
         }
       }
     );
 
     container.appendChild(item);
-  });
+  }
 }
 
 export default HomePage;
