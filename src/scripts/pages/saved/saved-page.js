@@ -15,9 +15,13 @@ const SavedPage = {
           Daftar story yang telah Anda simpan.
         </p>
 
+        <!-- ======================
+             STORY LIST
+        ======================= -->
+
         <div
           id="saved-stories"
-          class="saved-stories"
+          class="story-list"
           aria-live="polite"
         >
           <p>Loading...</p>
@@ -104,168 +108,212 @@ const SavedPage = {
     });
 
     // ======================
+    // RESET CONTAINER
+    // ======================
+
+    container.innerHTML = '';
+
+    // ======================
     // RENDER STORIES
     // ======================
 
-    container.innerHTML =
-      stories
-        .map(
-          (story) => `
-            <article
-              class="story-item"
-              tabindex="0"
-              aria-label="Story dari ${story.name}"
-              style="
-                background:#ffffff;
-                border-radius:12px;
-                padding:16px;
-                margin-bottom:20px;
-                box-shadow:
-                  0 2px 8px rgba(0,0,0,0.1);
-              "
-            >
-              <!-- ======================
-                   IMAGE
-              ======================= -->
+    stories.forEach((story) => {
+      const item =
+        document.createElement(
+          'article'
+        );
 
-              <img
-                src="${story.photoUrl}"
-                alt="Gambar story ${story.name}"
-                loading="lazy"
-                style="
-                  width:100%;
-                  border-radius:12px;
-                  margin-bottom:12px;
-                "
-              />
+      // ======================
+      // SAME STYLE AS HOME
+      // ======================
 
-              <!-- ======================
-                   CONTENT
-              ======================= -->
-
-              <div
-                class="story-content"
-              >
-                <h2>
-                  ${story.name}
-                </h2>
-
-                <p>
-                  ${story.description}
-                </p>
-
-                <small>
-                  ${new Date(
-                    story.createdAt
-                  ).toLocaleString()}
-                </small>
-
-                ${
-                  story.lat &&
-                  story.lon
-                    ? `
-                  <p
-                    style="
-                      margin-top:8px;
-                      font-size:14px;
-                      color:#555;
-                    "
-                  >
-                    Lokasi:
-                    ${story.lat},
-                    ${story.lon}
-                  </p>
-                `
-                    : ''
-                }
-
-                <br/>
-
-                <!-- ======================
-                     ACTION BUTTON
-                ======================= -->
-
-                <div
-                  style="
-                    display:flex;
-                    gap:10px;
-                    flex-wrap:wrap;
-                    margin-top:12px;
-                  "
-                >
-                  <button
-                    class="delete-story-btn"
-                    data-id="${story.id}"
-                    aria-label="Hapus story ${story.name}"
-                    style="
-                      padding:10px 14px;
-                      border:none;
-                      border-radius:8px;
-                      cursor:pointer;
-                    "
-                  >
-                    Hapus Story
-                  </button>
-                </div>
-              </div>
-            </article>
-          `
-        )
-        .join('');
-
-    // ======================
-    // DELETE STORY
-    // ======================
-
-    const deleteButtons =
-      document.querySelectorAll(
-        '.delete-story-btn'
+      item.classList.add(
+        'story-card'
       );
 
-    deleteButtons.forEach(
-      (button) => {
-        button.addEventListener(
-          'click',
-          async (event) => {
-            event.preventDefault();
+      item.setAttribute(
+        'tabindex',
+        '0'
+      );
 
-            const confirmDelete =
-              confirm(
-                'Yakin ingin menghapus story ini?'
-              );
+      item.setAttribute(
+        'aria-label',
+        `Story dari ${story.name}`
+      );
 
-            if (!confirmDelete) {
-              return;
-            }
+      item.style.padding =
+        '12px';
 
-            try {
-              const result =
-                await Database.deleteStory(
-                  button.dataset.id
-                );
+      item.style.marginBottom =
+        '16px';
 
-              alert(
-                result.message
-              );
+      item.style.borderRadius =
+        '12px';
 
-              if (result.success) {
-                // Re-render
-                await this.afterRender();
-              }
-            } catch (error) {
-              console.error(
-                'Gagal menghapus story:',
-                error
-              );
+      item.style.background =
+        '#ffffff';
 
-              alert(
-                'Terjadi kesalahan saat menghapus story'
-              );
-            }
+      item.style.boxShadow =
+        '0 2px 8px rgba(0,0,0,0.1)';
+
+      item.innerHTML = `
+        <!-- ======================
+             IMAGE
+        ======================= -->
+
+        <img
+          src="${story.photoUrl}"
+          alt="Gambar story ${story.name}"
+          loading="lazy"
+          style="
+            width:100%;
+            border-radius:12px;
+            margin-bottom:12px;
+          "
+        />
+
+        <!-- ======================
+             CONTENT
+        ======================= -->
+
+        <div class="story-card__content">
+          <h3>
+            ${story.name}
+          </h3>
+
+          <p>
+            ${story.description}
+          </p>
+
+          <small>
+            ${new Date(
+              story.createdAt
+            ).toLocaleString()}
+          </small>
+
+          ${
+            story.lat &&
+            story.lon
+              ? `
+            <p
+              style="
+                margin-top:8px;
+                font-size:14px;
+                color:#555;
+              "
+            >
+              Lokasi:
+              ${story.lat},
+              ${story.lon}
+            </p>
+          `
+              : ''
           }
+
+          <br/><br/>
+
+          <!-- ======================
+               ACTION BUTTON
+          ======================= -->
+
+          <div
+            style="
+              display:flex;
+              gap:10px;
+              flex-wrap:wrap;
+            "
+          >
+            <button
+              class="delete-story-btn"
+              data-id="${story.id}"
+              aria-label="Hapus story ${story.name}"
+              style="
+                padding:8px 12px;
+                border:none;
+                border-radius:8px;
+                cursor:pointer;
+              "
+            >
+              Hapus Story
+            </button>
+          </div>
+        </div>
+      `;
+
+      // ======================
+      // DELETE STORY
+      // ======================
+
+      const deleteButton =
+        item.querySelector(
+          '.delete-story-btn'
         );
-      }
-    );
+
+      deleteButton.addEventListener(
+        'click',
+        async (event) => {
+          event.preventDefault();
+
+          const confirmDelete =
+            confirm(
+              'Yakin ingin menghapus story ini?'
+            );
+
+          if (!confirmDelete) {
+            return;
+          }
+
+          try {
+            const result =
+              await Database.deleteStory(
+                story.id
+              );
+
+            alert(
+              result.message
+            );
+
+            if (result.success) {
+              // Remove card directly
+              item.remove();
+
+              // Empty state
+              if (
+                !container.children
+                  .length
+              ) {
+                container.innerHTML = `
+                  <div
+                    style="
+                      background:#ffffff;
+                      padding:20px;
+                      border-radius:12px;
+                      box-shadow:
+                        0 2px 8px rgba(0,0,0,0.1);
+                    "
+                  >
+                    <p>
+                      Belum ada story tersimpan
+                    </p>
+                  </div>
+                `;
+              }
+            }
+          } catch (error) {
+            console.error(
+              'Gagal menghapus story:',
+              error
+            );
+
+            alert(
+              'Terjadi kesalahan saat menghapus story'
+            );
+          }
+        }
+      );
+
+      container.appendChild(item);
+    });
   },
 };
 
