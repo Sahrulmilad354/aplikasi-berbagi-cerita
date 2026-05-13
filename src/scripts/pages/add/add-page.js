@@ -1,5 +1,13 @@
 import L from 'leaflet';
+
 import { Database } from '../../data/database';
+
+import {
+  showLoading,
+  closeLoading,
+  showSuccess,
+  showError,
+} from '../../utils/alert-helper';
 
 const AddPage = {
   async render() {
@@ -15,9 +23,7 @@ const AddPage = {
           id="story-form"
           class="add-story__form"
         >
-          <!-- ======================
-               DESCRIPTION
-          ======================= -->
+          <!-- DESCRIPTION -->
 
           <div class="form-group">
             <label for="description">
@@ -32,9 +38,7 @@ const AddPage = {
             />
           </div>
 
-          <!-- ======================
-               PHOTO
-          ======================= -->
+          <!-- PHOTO -->
 
           <div class="form-group">
             <label for="photo">
@@ -48,9 +52,7 @@ const AddPage = {
             />
           </div>
 
-          <!-- ======================
-               CAMERA
-          ======================= -->
+          <!-- CAMERA -->
 
           <div class="form-group">
             <label>
@@ -92,9 +94,7 @@ const AddPage = {
             ></canvas>
           </div>
 
-          <!-- ======================
-               MAP
-          ======================= -->
+          <!-- MAP -->
 
           <div class="form-group">
             <label>
@@ -119,13 +119,12 @@ const AddPage = {
             </p>
           </div>
 
-          <!-- ======================
-               SUBMIT
-          ======================= -->
+          <!-- SUBMIT -->
 
           <button
             type="submit"
             class="btn-primary"
+            id="submit-story"
           >
             Kirim Cerita
           </button>
@@ -141,9 +140,7 @@ const AddPage = {
   },
 
   async afterRender() {
-    // ======================
     // DOM
-    // ======================
 
     const form =
       document.querySelector(
@@ -180,18 +177,19 @@ const AddPage = {
         '#photo'
       );
 
-    // ======================
+    const submitButton =
+      document.querySelector(
+        '#submit-story'
+      );
+
     // STATE
-    // ======================
 
     let lat = null;
     let lon = null;
     let stream = null;
     let marker = null;
 
-    // ======================
     // MAP
-    // ======================
 
     const map = L.map('map').setView(
       [-2.5, 118],
@@ -223,9 +221,7 @@ const AddPage = {
         )}, ${lon.toFixed(4)}`;
     });
 
-    // ======================
     // STOP CAMERA
-    // ======================
 
     const stopCamera = () => {
       if (stream) {
@@ -250,9 +246,7 @@ const AddPage = {
         'inline-block';
     };
 
-    // ======================
     // OPEN CAMERA
-    // ======================
 
     openCameraBtn.addEventListener(
       'click',
@@ -278,13 +272,15 @@ const AddPage = {
         } catch (error) {
           message.innerText =
             'Tidak dapat mengakses kamera';
+
+          showError(
+            'Tidak dapat mengakses kamera'
+          );
         }
       }
     );
 
-    // ======================
     // CLOSE CAMERA
-    // ======================
 
     closeCameraBtn.addEventListener(
       'click',
@@ -293,9 +289,7 @@ const AddPage = {
       }
     );
 
-    // ======================
     // FILE INPUT
-    // ======================
 
     photoInput.addEventListener(
       'change',
@@ -304,9 +298,7 @@ const AddPage = {
       }
     );
 
-    // ======================
     // RESET FORM
-    // ======================
 
     const resetForm = () => {
       form.reset();
@@ -318,6 +310,7 @@ const AddPage = {
 
       if (marker) {
         map.removeLayer(marker);
+
         marker = null;
       }
 
@@ -327,9 +320,7 @@ const AddPage = {
         'Klik peta untuk memilih lokasi';
     };
 
-    // ======================
     // SUBMIT
-    // ======================
 
     form.addEventListener(
       'submit',
@@ -349,6 +340,10 @@ const AddPage = {
           message.innerText =
             'Deskripsi wajib diisi';
 
+          showError(
+            'Deskripsi wajib diisi'
+          );
+
           return;
         }
 
@@ -356,15 +351,17 @@ const AddPage = {
           message.innerText =
             'Silakan pilih lokasi di peta';
 
+          showError(
+            'Silakan pilih lokasi di peta'
+          );
+
           return;
         }
 
         let file =
           photoInput.files[0];
 
-        // ======================
         // CAMERA CAPTURE
-        // ======================
 
         if (stream) {
           canvas.width =
@@ -408,12 +405,14 @@ const AddPage = {
           message.innerText =
             'Gambar wajib dipilih';
 
+          showError(
+            'Gambar wajib dipilih'
+          );
+
           return;
         }
 
-        // ======================
         // TOKEN
-        // ======================
 
         const token =
           localStorage.getItem(
@@ -424,15 +423,28 @@ const AddPage = {
           message.innerText =
             'Harus login terlebih dahulu';
 
+          showError(
+            'Harus login terlebih dahulu'
+          );
+
           return;
         }
 
-        // ======================
+        // Disable button
+
+        submitButton.disabled = true;
+
+        submitButton.textContent =
+          'Mengirim...';
+
         // OFFLINE MODE
-        // ======================
 
         if (!navigator.onLine) {
           try {
+            showLoading(
+              'Menyimpan story offline...'
+            );
+
             await Database.savePendingStory(
               {
                 description,
@@ -444,7 +456,7 @@ const AddPage = {
               }
             );
 
-            // REGISTER BACKGROUND SYNC
+            // BACKGROUND SYNC
 
             if (
               'serviceWorker' in
@@ -459,23 +471,38 @@ const AddPage = {
               );
             }
 
+            closeLoading();
+
             message.innerText =
               'Offline: cerita disimpan dan akan disinkronkan saat online';
+
+            showSuccess(
+              'Story disimpan offline'
+            );
 
             resetForm();
           } catch (error) {
             console.error(error);
 
+            closeLoading();
+
             message.innerText =
               'Gagal menyimpan data offline';
+
+            showError(
+              'Gagal menyimpan data offline'
+            );
           }
+
+          submitButton.disabled = false;
+
+          submitButton.textContent =
+            'Kirim Cerita';
 
           return;
         }
 
-        // ======================
         // ONLINE SUBMIT
-        // ======================
 
         const formData =
           new FormData();
@@ -501,6 +528,10 @@ const AddPage = {
         );
 
         try {
+          showLoading(
+            'Mengunggah story...'
+          );
+
           const response =
             await fetch(
               'https://story-api.dicoding.dev/v1/stories',
@@ -516,9 +547,18 @@ const AddPage = {
           const result =
             await response.json();
 
+          closeLoading();
+
+          submitButton.disabled = false;
+
+          submitButton.textContent =
+            'Kirim Cerita';
+
           if (result.error) {
             message.innerText =
               result.message;
+
+            showError(result.message);
 
             return;
           }
@@ -526,12 +566,32 @@ const AddPage = {
           message.innerText =
             'Berhasil menambahkan cerita!';
 
+          showSuccess(
+            'Story berhasil ditambahkan!'
+          );
+
           resetForm();
+
+          setTimeout(() => {
+            window.location.hash =
+              '#/home';
+          }, 1500);
         } catch (error) {
           console.error(error);
 
+          closeLoading();
+
+          submitButton.disabled = false;
+
+          submitButton.textContent =
+            'Kirim Cerita';
+
           message.innerText =
             'Gagal mengirim data';
+
+          showError(
+            'Gagal mengirim data'
+          );
         }
       }
     );
