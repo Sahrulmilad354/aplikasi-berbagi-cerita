@@ -367,7 +367,7 @@
       </section>
     `},async afterRender(){const h=document.querySelector("#register-form"),a=document.querySelector("#message");h.addEventListener("submit",async u=>{u.preventDefault();const _=document.querySelector("#name").value,p=document.querySelector("#email").value,v=document.querySelector("#password").value;a.innerText="Loading...";try{const y=await(await fetch("https://story-api.dicoding.dev/v1/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:_,email:p,password:v})})).json();y.error?a.innerText=y.message:(a.innerText="Registrasi berhasil! Silakan login.",setTimeout(()=>{window.location.hash="#/login"},1500))}catch{a.innerText="Registrasi gagal"}})}},jr={async render(){return`
       <section class="saved-page">
-        <h1>Story Tersimpan</h1>
+        <h1>Cerita Tersimpan</h1>
 
         <p
           style="
@@ -375,7 +375,7 @@
             color:#555;
           "
         >
-          Daftar story yang telah Anda simpan.
+          Daftar Cerita yang telah Anda simpan.
         </p>
 
         <!-- ======================
