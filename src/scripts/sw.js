@@ -83,73 +83,43 @@ self.addEventListener(
 // PUSH NOTIFICATION
 // ======================
 
-self.addEventListener(
-  'push',
-  (event) => {
-    let payload = {
-      title: 'Story Baru',
+self.addEventListener('push', (event) => {
+  let payload = {
+    title: 'Story Baru',
+    options: {
+      body: 'Ada story baru ditambahkan',
+      icon: '/aplikasi-berbagi-cerita/icons/icon-192.png',
+      badge: '/aplikasi-berbagi-cerita/icons/icon-192.png',
 
-      options: {
-        body:
-          'Ada story baru ditambahkan',
-
-        data: {},
+      // URL tujuan ketika notifikasi diklik
+      data: {
+        url: 'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home',
       },
-    };
+    },
+  };
 
-    try {
-      if (event.data) {
-        payload =
-          event.data.json();
-      }
-    } catch (error) {
-      console.error(
-        'Push payload error:',
-        error
-      );
-    }
-
-    const title =
-      payload.title ||
-      'Story App';
-
-    const options = {
-      body:
-        payload.options?.body ||
-        'Ada update terbaru',
-
-      icon:
-        '/icons/icon-192.png',
-
-      badge:
-        '/icons/icon-192.png',
-
-      vibrate: [
-        100,
-        50,
-        100,
-      ],
-
-      data:
-        payload.options
-          ?.data || {},
-
-      actions: [
-        {
-          action: 'open',
-          title: 'Buka',
-        },
-      ],
-    };
-
-    event.waitUntil(
-      self.registration.showNotification(
-        title,
-        options
-      )
-    );
+  try {
+    payload = event.data.json();
+  } catch (error) {
+    console.error('Push payload error:', error);
   }
-);
+
+  event.waitUntil(
+    self.registration.showNotification(
+      payload.title,
+      {
+        ...payload.options,
+
+        // fallback agar tetap ada URL
+        data: {
+          url:
+            payload.options?.data?.url ||
+            'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home',
+        },
+      }
+    )
+  );
+});
 
 // ======================
 // NOTIFICATION CLICK
@@ -160,25 +130,9 @@ self.addEventListener(
   (event) => {
     event.notification.close();
 
-    const storyId =
-      event.notification.data
-        ?.storyId;
-
-    // ======================
-    // GITHUB PAGES BASE URL
-    // ======================
-
-    const BASE_PATH =
-      '/aplikasi-berbagi-cerita';
-
-    // ======================
-    // TARGET URL
-    // ======================
-
     const targetUrl =
-      storyId
-        ? `${self.location.origin}${BASE_PATH}/#/stories/${storyId}`
-        : `${self.location.origin}${BASE_PATH}/#/home`;
+      event.notification.data?.url ||
+      'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home';
 
     event.waitUntil(
       clients
@@ -186,35 +140,23 @@ self.addEventListener(
           type: 'window',
           includeUncontrolled: true,
         })
-        .then(
-          (clientList) => {
-            // ======================
-            // APP SUDAH TERBUKA
-            // ======================
-
-            for (const client of clientList) {
-              if (
-                client.url.includes(
-                  BASE_PATH
-                )
-              ) {
-                client.navigate(
-                  targetUrl
-                );
-
-                return client.focus();
-              }
+        .then((clientList) => {
+          // Jika tab aplikasi sudah terbuka,
+          // fokuskan dan arahkan ke home
+          for (const client of clientList) {
+            if ('focus' in client) {
+              client.navigate(targetUrl);
+              return client.focus();
             }
+          }
 
-            // ======================
-            // APP BELUM TERBUKA
-            // ======================
-
+          // Jika belum ada tab, buka tab baru
+          if (clients.openWindow) {
             return clients.openWindow(
               targetUrl
             );
           }
-        )
+        })
     );
   }
 );

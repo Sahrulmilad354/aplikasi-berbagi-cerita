@@ -34,10 +34,6 @@ const HomePage = {
             flex-wrap:wrap;
           "
         >
-          <label
-            for="search-story"
-            class="sr-only"
-          >
           <input
             id="search-story"
             type="text"
@@ -148,7 +144,9 @@ const HomePage = {
     // ======================
 
     const listContainer =
-      document.querySelector('#story-list');
+      document.querySelector(
+        '#story-list'
+      );
 
     const searchInput =
       document.querySelector(
@@ -220,7 +218,8 @@ const HomePage = {
       renderStories({
         stories,
         map,
-        container: listContainer,
+        container:
+          listContainer,
       });
     } catch (error) {
       console.error(
@@ -239,7 +238,8 @@ const HomePage = {
         renderStories({
           stories,
           map,
-          container: listContainer,
+          container:
+            listContainer,
           isOffline: true,
         });
       } else {
@@ -337,7 +337,7 @@ function renderStories({
   isOffline = false,
 }) {
   // ======================
-  // RESET
+  // RESET CONTAINER
   // ======================
 
   container.innerHTML = '';
@@ -431,7 +431,7 @@ function renderStories({
     }
 
     // ======================
-    // CARD
+    // STORY CARD
     // ======================
 
     const item =
@@ -468,6 +468,9 @@ function renderStories({
     item.style.cursor =
       'pointer';
 
+    item.style.boxShadow =
+      '0 2px 8px rgba(0,0,0,0.1)';
+
     item.innerHTML = `
       <img
         src="${story.photoUrl}"
@@ -476,6 +479,7 @@ function renderStories({
         style="
           width:100%;
           border-radius:12px;
+          margin-bottom:12px;
         "
       />
 
@@ -494,19 +498,48 @@ function renderStories({
 
         <br/><br/>
 
-        <button
-          class="delete-story"
-          data-id="${story.id}"
-          aria-label="Hapus cerita ${story.name}"
+        <div
           style="
-            padding:8px 12px;
-            border:none;
-            border-radius:8px;
-            cursor:pointer;
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
           "
         >
-          Hapus
-        </button>
+          <!-- ======================
+               SAVE BUTTON
+          ======================= -->
+
+          <button
+            class="save-story"
+            aria-label="Simpan cerita ${story.name}"
+            style="
+              padding:8px 12px;
+              border:none;
+              border-radius:8px;
+              cursor:pointer;
+            "
+          >
+            Simpan
+          </button>
+
+          <!-- ======================
+               DELETE BUTTON
+          ======================= -->
+
+          <button
+            class="delete-story"
+            data-id="${story.id}"
+            aria-label="Hapus cerita ${story.name}"
+            style="
+              padding:8px 12px;
+              border:none;
+              border-radius:8px;
+              cursor:pointer;
+            "
+          >
+            Hapus
+          </button>
+        </div>
       </div>
     `;
 
@@ -543,6 +576,29 @@ function renderStories({
     }
 
     // ======================
+    // SAVE STORY
+    // ======================
+
+    const saveButton =
+      item.querySelector(
+        '.save-story'
+      );
+
+    saveButton.addEventListener(
+      'click',
+      async (event) => {
+        event.stopPropagation();
+
+        const result =
+          await Database.saveStory(
+            story
+          );
+
+        alert(result.message);
+      }
+    );
+
+    // ======================
     // DELETE STORY
     // ======================
 
@@ -561,19 +617,27 @@ function renderStories({
             'Hapus cerita ini?'
           );
 
-        if (!confirmDelete)
+        if (!confirmDelete) {
           return;
+        }
 
-        await Database.deleteStory(
-          story.id
-        );
-
-        item.remove();
-
-        if (marker) {
-          map.removeLayer(
-            marker
+        const result =
+          await Database.deleteStory(
+            story.id
           );
+
+        if (result.success) {
+          item.remove();
+
+          if (marker) {
+            map.removeLayer(
+              marker
+            );
+          }
+
+          alert(result.message);
+        } else {
+          alert(result.message);
         }
       }
     );
