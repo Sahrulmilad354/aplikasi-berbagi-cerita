@@ -4,7 +4,7 @@ const SavedPage = {
   async render() {
     return `
       <section class="saved-page">
-        <h1>Story Tersimpan</h1>
+        <h1>Cerita Tersimpan</h1>
 
         <p
           style="
@@ -12,7 +12,7 @@ const SavedPage = {
             color:#555;
           "
         >
-          Daftar story yang telah Anda simpan.
+          Daftar Cerita yang telah Anda simpan.
         </p>
 
         <!-- ======================
