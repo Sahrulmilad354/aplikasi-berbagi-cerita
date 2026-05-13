@@ -130,33 +130,44 @@ self.addEventListener(
   (event) => {
     event.notification.close();
 
+    // URL home terbaru
     const targetUrl =
-      event.notification.data?.url ||
       'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home';
 
     event.waitUntil(
-      clients
-        .matchAll({
-          type: 'window',
-          includeUncontrolled: true,
-        })
-        .then((clientList) => {
-          // Jika tab aplikasi sudah terbuka,
-          // fokuskan dan arahkan ke home
-          for (const client of clientList) {
-            if ('focus' in client) {
-              client.navigate(targetUrl);
-              return client.focus();
-            }
-          }
+      (async () => {
+        // Ambil semua tab aplikasi
+        const clientList =
+          await clients.matchAll({
+            type: 'window',
+            includeUncontrolled: true,
+          });
 
-          // Jika belum ada tab, buka tab baru
-          if (clients.openWindow) {
-            return clients.openWindow(
+        // Jika aplikasi sudah terbuka
+        for (const client of clientList) {
+          // Cocokkan aplikasi GitHub Pages
+          if (
+            client.url.includes(
+              '/aplikasi-berbagi-cerita'
+            )
+          ) {
+            // Fokus ke tab
+            await client.focus();
+
+            // Paksa navigasi ke halaman home terbaru
+            await client.navigate(
               targetUrl
             );
+
+            return;
           }
-        })
+        }
+
+        // Jika belum ada tab aplikasi
+        await clients.openWindow(
+          targetUrl
+        );
+      })()
     );
   }
 );
