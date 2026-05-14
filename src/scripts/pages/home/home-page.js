@@ -26,43 +26,89 @@ const HomePage = {
 
         <section
           class="story-filter"
-          aria-label="Filter cerita"
+          aria-labelledby="filter-title"
           style="
             margin-bottom:20px;
-            display:flex;
-            gap:12px;
-            flex-wrap:wrap;
           "
         >
-          <input
-            id="search-story"
-            type="text"
-            placeholder="Cari cerita..."
-            aria-label="Cari cerita"
+          <h2
+            id="filter-title"
             style="
-              flex:1;
-              min-width:220px;
-              padding:10px;
-              border-radius:8px;
-            "
-          />
-
-          <select
-            id="sort-story"
-            aria-label="Urutkan cerita"
-            style="
-              padding:10px;
-              border-radius:8px;
+              margin-bottom:12px;
             "
           >
-            <option value="newest">
-              Terbaru
-            </option>
+            Filter Cerita
+          </h2>
 
-            <option value="oldest">
-              Terlama
-            </option>
-          </select>
+          <div
+            style="
+              display:flex;
+              gap:12px;
+              flex-wrap:wrap;
+              align-items:flex-end;
+            "
+          >
+            <!-- SEARCH -->
+
+            <div
+              style="
+                display:flex;
+                flex-direction:column;
+                gap:6px;
+                flex:1;
+                min-width:220px;
+              "
+            >
+              <label for="search-story">
+                Cari cerita
+              </label>
+
+              <input
+                id="search-story"
+                type="text"
+                placeholder="Cari cerita..."
+                aria-label="Cari cerita"
+                autocomplete="off"
+                style="
+                  padding:10px;
+                  border-radius:8px;
+                  border:1px solid #ccc;
+                "
+              />
+            </div>
+
+            <!-- SORT -->
+
+            <div
+              style="
+                display:flex;
+                flex-direction:column;
+                gap:6px;
+              "
+            >
+              <label for="sort-story">
+                Urutkan cerita
+              </label>
+
+              <select
+                id="sort-story"
+                aria-label="Urutkan cerita"
+                style="
+                  padding:10px;
+                  border-radius:8px;
+                  border:1px solid #ccc;
+                "
+              >
+                <option value="newest">
+                  Terbaru
+                </option>
+
+                <option value="oldest">
+                  Terlama
+                </option>
+              </select>
+            </div>
+          </div>
         </section>
 
         <!-- ======================
@@ -74,6 +120,7 @@ const HomePage = {
         <div
           id="map"
           aria-label="Peta lokasi cerita"
+          role="application"
           style="
             height:400px;
             margin-bottom:20px;
@@ -236,23 +283,26 @@ const HomePage = {
         ...stories,
       ];
 
+      const keyword =
+        searchInput.value
+          .trim()
+          .toLowerCase();
+
       // SEARCH
+
       filteredStories =
         filteredStories.filter(
           (story) =>
             story.name
               ?.toLowerCase()
-              .includes(
-                searchInput.value.toLowerCase()
-              ) ||
+              .includes(keyword) ||
             story.description
               ?.toLowerCase()
-              .includes(
-                searchInput.value.toLowerCase()
-              )
+              .includes(keyword)
         );
 
       // SORT
+
       filteredStories.sort(
         (a, b) => {
           if (
@@ -428,6 +478,7 @@ async function renderStories({
           width:100%;
           border-radius:12px;
           margin-bottom:12px;
+          object-fit:cover;
         "
       />
 
@@ -459,6 +510,7 @@ async function renderStories({
 
           <button
             class="save-story"
+            type="button"
             aria-label="Simpan cerita ${story.name}"
             style="
               padding:8px 12px;
@@ -480,6 +532,7 @@ async function renderStories({
 
           <button
             class="delete-story"
+            type="button"
             data-id="${story.id}"
             aria-label="Hapus cerita ${story.name}"
             style="
@@ -519,8 +572,12 @@ async function renderStories({
         'keydown',
         (event) => {
           if (
-            event.key === 'Enter'
+            event.key ===
+              'Enter' ||
+            event.key === ' '
           ) {
+            event.preventDefault();
+
             item.click();
           }
         }
