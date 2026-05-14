@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/aplikasi-berbagi-cerita/sw.js', { scope: '/aplikasi-berbagi-cerita/' })})}
