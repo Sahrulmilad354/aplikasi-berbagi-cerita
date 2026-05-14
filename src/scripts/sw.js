@@ -1,21 +1,27 @@
+//
 // ======================
 // CACHE
 // ======================
+//
 
 const CACHE_NAME =
-  'story-app-v1';
+  'story-app-v2';
 
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
+
+  // ICONS
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ];
 
+//
 // ======================
 // INSTALL
 // ======================
+//
 
 self.addEventListener(
   'install',
@@ -25,22 +31,27 @@ self.addEventListener(
     );
 
     event.waitUntil(
-      caches.open(CACHE_NAME).then(
-        (cache) => {
-          return cache.addAll(
-            STATIC_ASSETS
+      (async () => {
+        const cache =
+          await caches.open(
+            CACHE_NAME
           );
-        }
-      )
+
+        await cache.addAll(
+          STATIC_ASSETS
+        );
+      })()
     );
 
     self.skipWaiting();
   }
 );
 
+//
 // ======================
 // ACTIVATE
 // ======================
+//
 
 self.addEventListener(
   'activate',
@@ -79,91 +90,178 @@ self.addEventListener(
   }
 );
 
+//
 // ======================
 // PUSH NOTIFICATION
 // ======================
+//
 
-self.addEventListener('push', (event) => {
-  let payload = {
-    title: 'Story Baru',
-    options: {
-      body: 'Ada story baru ditambahkan',
-      icon: '/aplikasi-berbagi-cerita/icons/icon-192.png',
-      badge: '/aplikasi-berbagi-cerita/icons/icon-192.png',
+self.addEventListener(
+  'push',
+  (event) => {
+    console.log(
+      '[SW] Push received'
+    );
 
-      // URL tujuan ketika notifikasi diklik
-      data: {
-        url: 'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home',
-      },
-    },
-  };
+    //
+    // DEFAULT PAYLOAD
+    //
 
-  try {
-    payload = event.data.json();
-  } catch (error) {
-    console.error('Push payload error:', error);
-  }
+    let payload = {
+      title: 'Story Baru',
+      options: {
+        body:
+          'Ada story baru ditambahkan',
 
-  event.waitUntil(
-    self.registration.showNotification(
-      payload.title,
-      {
-        ...payload.options,
+        icon:
+          '/icons/icon-192.png',
 
-        // fallback agar tetap ada URL
+        badge:
+          '/icons/icon-192.png',
+
+        vibrate: [
+          100,
+          50,
+          100,
+        ],
+
         data: {
           url:
-            payload.options?.data?.url ||
             'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home',
         },
-      }
-    )
-  );
-});
+      },
+    };
 
+    //
+    // PARSE PAYLOAD
+    //
+
+    if (event.data) {
+      try {
+        const data =
+          event.data.json();
+
+        payload = {
+          title:
+            data.title ||
+            'Story Baru',
+
+          options: {
+            body:
+              data.options
+                ?.body ||
+              'Ada story baru ditambahkan',
+
+            icon:
+              data.options
+                ?.icon ||
+              '/icons/icon-192.png',
+
+            badge:
+              data.options
+                ?.badge ||
+              '/icons/icon-192.png',
+
+            vibrate: [
+              100,
+              50,
+              100,
+            ],
+
+            data: {
+              url:
+                data.options
+                  ?.data
+                  ?.url ||
+                'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home',
+            },
+          },
+        };
+      } catch (error) {
+        console.error(
+          'Push parse error:',
+          error
+        );
+      }
+    }
+
+    //
+    // SHOW NOTIFICATION
+    //
+
+    event.waitUntil(
+      self.registration.showNotification(
+        payload.title,
+        payload.options
+      )
+    );
+  }
+);
+
+//
 // ======================
 // NOTIFICATION CLICK
 // ======================
+//
 
 self.addEventListener(
   'notificationclick',
   (event) => {
+    console.log(
+      '[SW] Notification clicked'
+    );
+
     event.notification.close();
 
-    // URL home terbaru
     const targetUrl =
+      event.notification.data
+        ?.url ||
       'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home';
 
     event.waitUntil(
       (async () => {
-        // Ambil semua tab aplikasi
+        //
+        // CHECK OPENED CLIENT
+        //
+
         const clientList =
           await clients.matchAll({
             type: 'window',
             includeUncontrolled: true,
           });
 
-        // Jika aplikasi sudah terbuka
+        //
+        // FOCUS EXISTING TAB
+        //
+
         for (const client of clientList) {
-          // Cocokkan aplikasi GitHub Pages
           if (
             client.url.includes(
               '/aplikasi-berbagi-cerita'
             )
           ) {
-            // Fokus ke tab
             await client.focus();
 
-            // Paksa navigasi ke halaman home terbaru
-            await client.navigate(
-              targetUrl
-            );
+            //
+            // REDIRECT TO HOME
+            //
+
+            if (
+              'navigate' in client
+            ) {
+              await client.navigate(
+                targetUrl
+              );
+            }
 
             return;
           }
         }
 
-        // Jika belum ada tab aplikasi
+        //
+        // OPEN NEW TAB
+        //
+
         await clients.openWindow(
           targetUrl
         );
@@ -172,9 +270,11 @@ self.addEventListener(
   }
 );
 
+//
 // ======================
 // BACKGROUND SYNC
 // ======================
+//
 
 self.addEventListener(
   'sync',
@@ -195,13 +295,17 @@ self.addEventListener(
   }
 );
 
+//
 // ======================
 // SYNC FUNCTION
 // ======================
+//
 
 async function syncPendingStories() {
   try {
-    // TRIGGER APP SYNC
+    //
+    // SEND MESSAGE TO CLIENT
+    //
 
     const allClients =
       await clients.matchAll({
@@ -211,20 +315,26 @@ async function syncPendingStories() {
     allClients.forEach(
       (client) => {
         client.postMessage({
-          type: 'SYNC_PENDING_STORIES',
+          type:
+            'SYNC_PENDING_STORIES',
         });
       }
     );
 
+    //
     // OPTIONAL NOTIFICATION
+    //
 
-    self.registration.showNotification(
+    await self.registration.showNotification(
       'Sinkronisasi Berhasil',
       {
         body:
           'Story offline berhasil disinkronkan',
 
         icon:
+          '/icons/icon-192.png',
+
+        badge:
           '/icons/icon-192.png',
       }
     );
@@ -236,14 +346,18 @@ async function syncPendingStories() {
   }
 }
 
+//
 // ======================
 // FETCH
 // ======================
+//
 
 self.addEventListener(
   'fetch',
   (event) => {
-    // HANYA GET
+    //
+    // ONLY GET
+    //
 
     if (
       event.request.method !==
@@ -253,113 +367,122 @@ self.addEventListener(
     }
 
     event.respondWith(
-      caches
-        .match(event.request)
-        .then(
-          async (
-            cachedResponse
-          ) => {
-            // CACHE FIRST
+      (async () => {
+        //
+        // CACHE FIRST
+        //
 
-            if (
-              cachedResponse
-            ) {
-              return cachedResponse;
-            }
+        const cachedResponse =
+          await caches.match(
+            event.request
+          );
 
-            try {
-              // NETWORK
+        if (cachedResponse) {
+          return cachedResponse;
+        }
 
-              const response =
-                await fetch(
-                  event.request
-                );
+        try {
+          //
+          // NETWORK REQUEST
+          //
 
-              // SIMPAN KE CACHE
+          const response =
+            await fetch(
+              event.request
+            );
 
-              const cache =
-                await caches.open(
-                  CACHE_NAME
-                );
+          //
+          // SAVE TO CACHE
+          //
 
-              cache.put(
-                event.request,
-                response.clone()
-              );
+          const cache =
+            await caches.open(
+              CACHE_NAME
+            );
 
-              return response;
-            } catch (error) {
-              console.error(
-                'Fetch failed:',
-                error
-              );
+          cache.put(
+            event.request,
+            response.clone()
+          );
 
-              // OFFLINE PAGE
+          return response;
+        } catch (error) {
+          console.error(
+            'Fetch failed:',
+            error
+          );
 
-              if (
-                event.request
-                  .mode ===
-                'navigate'
-              ) {
-                return new Response(
-                  `
-                  <html>
-                    <head>
-                      <title>
-                        Offline
-                      </title>
-                    </head>
+          //
+          // OFFLINE FALLBACK
+          //
 
-                    <body
-                      style="
-                        font-family:sans-serif;
-                        padding:20px;
-                        text-align:center;
-                      "
-                    >
-                      <h1>
-                        Offline
-                      </h1>
+          if (
+            event.request
+              .mode ===
+            'navigate'
+          ) {
+            return new Response(
+              `
+              <html>
+                <head>
+                  <title>
+                    Offline
+                  </title>
+                </head>
 
-                      <p>
-                        Aplikasi sedang offline.
-                      </p>
+                <body
+                  style="
+                    font-family:sans-serif;
+                    padding:20px;
+                    text-align:center;
+                  "
+                >
+                  <h1>
+                    Offline
+                  </h1>
 
-                      <p>
-                        Silakan cek koneksi internet Anda.
-                      </p>
-                    </body>
-                  </html>
-                  `,
-                  {
-                    headers: {
-                      'Content-Type':
-                        'text/html',
-                    },
-                  }
-                );
+                  <p>
+                    Aplikasi sedang offline.
+                  </p>
+
+                  <p>
+                    Silakan cek koneksi internet Anda.
+                  </p>
+                </body>
+              </html>
+              `,
+              {
+                headers: {
+                  'Content-Type':
+                    'text/html',
+                },
               }
-
-              // FALLBACK RESPONSE
-
-              return new Response(
-                'Offline mode aktif',
-                {
-                  status: 503,
-                  statusText:
-                    'Offline',
-                }
-              );
-            }
+            );
           }
-        )
+
+          //
+          // GENERIC FALLBACK
+          //
+
+          return new Response(
+            'Offline mode aktif',
+            {
+              status: 503,
+              statusText:
+                'Offline',
+            }
+          );
+        }
+      })()
     );
   }
 );
 
+//
 // ======================
 // MESSAGE FROM CLIENT
 // ======================
+//
 
 self.addEventListener(
   'message',
