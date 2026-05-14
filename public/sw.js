@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-globals */
+
 //
 // ======================
 // CACHE
@@ -5,16 +7,22 @@
 //
 
 const CACHE_NAME =
-  'story-app-v2';
+  'story-app-v3';
+
+const BASE_PATH =
+  '/aplikasi-berbagi-cerita';
+
+const HOME_URL =
+  'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home';
 
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
+  `${BASE_PATH}/`,
+  `${BASE_PATH}/index.html`,
+  `${BASE_PATH}/manifest.webmanifest`,
 
   // ICONS
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  `${BASE_PATH}/icons/icon-192.png`,
+  `${BASE_PATH}/icons/icon-512.png`,
 ];
 
 //
@@ -27,19 +35,26 @@ self.addEventListener(
   'install',
   (event) => {
     console.log(
-      'Service Worker Installed'
+      '[SW] Installed'
     );
 
     event.waitUntil(
       (async () => {
-        const cache =
-          await caches.open(
-            CACHE_NAME
-          );
+        try {
+          const cache =
+            await caches.open(
+              CACHE_NAME
+            );
 
-        await cache.addAll(
-          STATIC_ASSETS
-        );
+          await cache.addAll(
+            STATIC_ASSETS
+          );
+        } catch (error) {
+          console.error(
+            '[SW] Cache install failed:',
+            error
+          );
+        }
       })()
     );
 
@@ -57,34 +72,43 @@ self.addEventListener(
   'activate',
   (event) => {
     console.log(
-      'Service Worker Activated'
+      '[SW] Activated'
     );
 
     event.waitUntil(
       (async () => {
-        // DELETE OLD CACHE
+        try {
+          //
+          // DELETE OLD CACHE
+          //
 
-        const cacheNames =
-          await caches.keys();
+          const cacheNames =
+            await caches.keys();
 
-        await Promise.all(
-          cacheNames.map(
-            (cache) => {
-              if (
-                cache !==
-                CACHE_NAME
-              ) {
-                return caches.delete(
-                  cache
-                );
+          await Promise.all(
+            cacheNames.map(
+              (cache) => {
+                if (
+                  cache !==
+                  CACHE_NAME
+                ) {
+                  return caches.delete(
+                    cache
+                  );
+                }
+
+                return null;
               }
+            )
+          );
 
-              return null;
-            }
-          )
-        );
-
-        await clients.claim();
+          await clients.claim();
+        } catch (error) {
+          console.error(
+            '[SW] Activate failed:',
+            error
+          );
+        }
       })()
     );
   }
@@ -108,16 +132,18 @@ self.addEventListener(
     //
 
     let payload = {
-      title: 'Story Baru',
+      title:
+        'Story berhasil dibuat',
+
       options: {
         body:
-          'Ada story baru ditambahkan',
+          'Anda telah membuat story baru',
 
         icon:
-          '/icons/icon-192.png',
+          `${BASE_PATH}/icons/icon-192.png`,
 
         badge:
-          '/icons/icon-192.png',
+          `${BASE_PATH}/icons/icon-192.png`,
 
         vibrate: [
           100,
@@ -126,8 +152,7 @@ self.addEventListener(
         ],
 
         data: {
-          url:
-            'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home',
+          url: HOME_URL,
         },
       },
     };
@@ -136,31 +161,34 @@ self.addEventListener(
     // PARSE PAYLOAD
     //
 
-    if (event.data) {
-      try {
+    try {
+      if (event.data) {
         const data =
           event.data.json();
 
         payload = {
           title:
             data.title ||
-            'Story Baru',
+            payload.title,
 
           options: {
             body:
               data.options
                 ?.body ||
-              'Ada story baru ditambahkan',
+              payload.options
+                .body,
 
             icon:
               data.options
                 ?.icon ||
-              '/icons/icon-192.png',
+              payload.options
+                .icon,
 
             badge:
               data.options
                 ?.badge ||
-              '/icons/icon-192.png',
+              payload.options
+                .badge,
 
             vibrate: [
               100,
@@ -173,16 +201,16 @@ self.addEventListener(
                 data.options
                   ?.data
                   ?.url ||
-                'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home',
+                HOME_URL,
             },
           },
         };
-      } catch (error) {
-        console.error(
-          'Push parse error:',
-          error
-        );
       }
+    } catch (error) {
+      console.error(
+        '[SW] Push parse error:',
+        error
+      );
     }
 
     //
@@ -215,56 +243,64 @@ self.addEventListener(
 
     const targetUrl =
       event.notification.data
-        ?.url ||
-      'https://sahrulmilad354.github.io/aplikasi-berbagi-cerita/#/home';
+        ?.url || HOME_URL;
 
     event.waitUntil(
       (async () => {
-        //
-        // CHECK OPENED CLIENT
-        //
+        try {
+          //
+          // CHECK OPENED CLIENTS
+          //
 
-        const clientList =
-          await clients.matchAll({
-            type: 'window',
-            includeUncontrolled: true,
-          });
+          const clientList =
+            await clients.matchAll({
+              type: 'window',
+              includeUncontrolled: true,
+            });
 
-        //
-        // FOCUS EXISTING TAB
-        //
+          //
+          // FOCUS EXISTING TAB
+          //
 
-        for (const client of clientList) {
-          if (
-            client.url.includes(
-              '/aplikasi-berbagi-cerita'
-            )
-          ) {
-            await client.focus();
-
-            //
-            // REDIRECT TO HOME
-            //
-
+          for (const client of clientList) {
             if (
-              'navigate' in client
+              'focus' in client
             ) {
-              await client.navigate(
-                targetUrl
-              );
+              await client.focus();
+
+              //
+              // REDIRECT TO HOME
+              //
+
+              if (
+                'navigate' in client
+              ) {
+                await client.navigate(
+                  targetUrl
+                );
+              }
+
+              return;
             }
-
-            return;
           }
+
+          //
+          // OPEN NEW TAB
+          //
+
+          if (
+            clients.openWindow
+          ) {
+            await clients.openWindow(
+              targetUrl
+            );
+          }
+        } catch (error) {
+          console.error(
+            '[SW] Notification click failed:',
+            error
+          );
         }
-
-        //
-        // OPEN NEW TAB
-        //
-
-        await clients.openWindow(
-          targetUrl
-        );
       })()
     );
   }
@@ -280,7 +316,7 @@ self.addEventListener(
   'sync',
   (event) => {
     console.log(
-      'Background Sync:',
+      '[SW] Background Sync:',
       event.tag
     );
 
@@ -332,15 +368,15 @@ async function syncPendingStories() {
           'Story offline berhasil disinkronkan',
 
         icon:
-          '/icons/icon-192.png',
+          `${BASE_PATH}/icons/icon-192.png`,
 
         badge:
-          '/icons/icon-192.png',
+          `${BASE_PATH}/icons/icon-192.png`,
       }
     );
   } catch (error) {
     console.error(
-      'Sync failed:',
+      '[SW] Sync failed:',
       error
     );
   }
@@ -392,23 +428,28 @@ self.addEventListener(
             );
 
           //
-          // SAVE TO CACHE
+          // ONLY CACHE VALID RESPONSE
           //
 
-          const cache =
-            await caches.open(
-              CACHE_NAME
-            );
+          if (
+            response &&
+            response.status === 200
+          ) {
+            const cache =
+              await caches.open(
+                CACHE_NAME
+              );
 
-          cache.put(
-            event.request,
-            response.clone()
-          );
+            cache.put(
+              event.request,
+              response.clone()
+            );
+          }
 
           return response;
         } catch (error) {
           console.error(
-            'Fetch failed:',
+            '[SW] Fetch failed:',
             error
           );
 
@@ -425,9 +466,7 @@ self.addEventListener(
               `
               <html>
                 <head>
-                  <title>
-                    Offline
-                  </title>
+                  <title>Offline</title>
                 </head>
 
                 <body

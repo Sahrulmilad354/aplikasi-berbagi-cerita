@@ -3,8 +3,6 @@ import App from './app';
 import '../styles/main.scss';
 import 'leaflet/dist/leaflet.css';
 
-import { registerSW } from 'virtual:pwa-register';
-
 import {
   subscribePushNotification,
   unsubscribePushNotification,
@@ -20,22 +18,48 @@ import { syncPendingStories } from './data/sync';
 let deferredPrompt = null;
 
 // buat tombol install
-const installButton = document.createElement('button');
+const installButton = document.createElement(
+  'button'
+);
 
-installButton.textContent = '📲 Install App';
+installButton.textContent =
+  '📲 Install App';
 
-installButton.style.position = 'fixed';
-installButton.style.bottom = '20px';
-installButton.style.right = '20px';
-installButton.style.zIndex = '9999';
-installButton.style.padding = '12px 20px';
-installButton.style.border = 'none';
-installButton.style.borderRadius = '10px';
-installButton.style.background = '#2563eb';
-installButton.style.color = 'white';
-installButton.style.fontWeight = 'bold';
-installButton.style.cursor = 'pointer';
-installButton.style.display = 'none';
+installButton.style.position =
+  'fixed';
+
+installButton.style.bottom =
+  '20px';
+
+installButton.style.right =
+  '20px';
+
+installButton.style.zIndex =
+  '9999';
+
+installButton.style.padding =
+  '12px 20px';
+
+installButton.style.border =
+  'none';
+
+installButton.style.borderRadius =
+  '10px';
+
+installButton.style.background =
+  '#2563eb';
+
+installButton.style.color =
+  'white';
+
+installButton.style.fontWeight =
+  'bold';
+
+installButton.style.cursor =
+  'pointer';
+
+installButton.style.display =
+  'none';
 
 document.body.appendChild(
   installButton
@@ -111,9 +135,9 @@ document.addEventListener(
 
     updateNavbar();
 
-    // PWA
+    // REGISTER SERVICE WORKER
 
-    initPWA();
+    await registerServiceWorker();
 
     // PUSH NOTIFICATION
 
@@ -158,40 +182,61 @@ document.addEventListener(
 );
 
 // ======================
-// PWA REGISTER
+// REGISTER SERVICE WORKER
 // ======================
 
-function initPWA() {
-  registerSW({
-    immediate: true,
+async function registerServiceWorker() {
+  if (
+    !(
+      'serviceWorker' in
+      navigator
+    )
+  ) {
+    console.warn(
+      'Service Worker tidak didukung browser'
+    );
 
-    onRegistered(
+    return;
+  }
+
+  try {
+    const registration =
+      await navigator.serviceWorker.register(
+        '/aplikasi-berbagi-cerita/sw.js'
+      );
+
+    console.log(
+      'Service Worker berhasil didaftarkan:',
       registration
+    );
+
+    // BACKGROUND SYNC READY
+
+    if (
+      registration &&
+      'sync' in registration
     ) {
       console.log(
-        'Service Worker registered:',
-        registration
+        'Background Sync supported'
       );
+    }
 
-      // BACKGROUND SYNC READY
+    // UPDATE FOUND
 
-      if (
-        registration &&
-        'sync' in registration
-      ) {
+    registration.addEventListener(
+      'updatefound',
+      () => {
         console.log(
-          'Background Sync supported'
+          'Service Worker update ditemukan'
         );
       }
-    },
-
-    onRegisterError(error) {
-      console.error(
-        'Service Worker registration failed:',
-        error
-      );
-    },
-  });
+    );
+  } catch (error) {
+    console.error(
+      'Service Worker registration failed:',
+      error
+    );
+  }
 }
 
 // ======================

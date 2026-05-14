@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/aplikasi-berbagi-cerita/dev-sw.js?dev-sw', { scope: '/aplikasi-berbagi-cerita/', type: 'classic' })
